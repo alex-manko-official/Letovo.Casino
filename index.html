@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Machine</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="scene">
+        <div class="machine" id="machine">
+            <!-- Верхняя панель -->
+            <div class="top-panel">
+                <div class="top-panel-inner">
+                    <span class="title-text">Slot Machine</span>
+                </div>
+            </div>
+            
+            <!-- Игровое окно -->
+            <div class="game-window">
+                <!-- Левый индикатор -->
+                <div class="result-pointer" id="resultPointer"></div>
+                
+                <!-- Барабаны -->
+                <div class="reels-container">
+                    <div class="reel-column">
+                        <div class="reel-frame">
+                            <div class="reel" id="reel1"></div>
+                        </div>
+                        <div class="reel-divider"></div>
+                    </div>
+                    <div class="reel-column">
+                        <div class="reel-frame">
+                            <div class="reel" id="reel2"></div>
+                        </div>
+                        <div class="reel-divider"></div>
+                    </div>
+                    <div class="reel-column">
+                        <div class="reel-frame">
+                            <div class="reel" id="reel3"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Золотые акценты -->
+                <div class="gold-accents">
+                    <span class="gold-line"></span>
+                    <span class="gold-text">JACKPOT</span>
+                    <span class="gold-line"></span>
+                </div>
+                
+                <!-- Стекло -->
+                <div class="glass-overlay"></div>
+                <!-- Центральная линия выплат -->
+                <div class="payline"></div>
+            </div>
+            
+            <!-- Нижняя наклонная панель -->
+            <div class="control-panel">
+                <div class="payout-slot"></div>
+            </div>
+            
+            <!-- Передняя панель CASINO -->
+            <div class="front-panel">
+                <span class="casino-text">CASINO</span>
+            </div>
+            
+            <!-- Монетный лоток -->
+            <div class="coin-tray">
+                <div class="coin-slot"></div>
+            </div>
+            
+            <!-- РЫЧАГ СПРАВА -->
+            <div class="lever-assembly" id="leverAssembly">
+                <div class="lever-hinge"></div>
+                <div class="lever-shaft" id="leverShaft">
+                    <div class="lever-knob"></div>
+                </div>
+            </div>
+            
+            <!-- Мобильная кнопка SPIN (только < 480px) -->
+            <button class="mobile-spin-btn" id="mobileSpinBtn" aria-label="Spin">SPIN</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
