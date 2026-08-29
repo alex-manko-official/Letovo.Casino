@@ -14,9 +14,10 @@ const SYMBOLS = [
 // Математика барабана
 const REEL_HEIGHT = 60;
 const SYMBOLS_PER_REEL = 22;
+const REEL_STRIP_CYCLES = 12; // количество повторов символов в ленте для буфера
 const VIEWPORT_HEIGHT = 180;
 const CENTER_OFFSET = 60;
-const STRIP_HEIGHT = SYMBOLS_PER_REEL * REEL_HEIGHT; // 1320px
+const STRIP_HEIGHT = SYMBOLS_PER_REEL * REEL_HEIGHT;
 
 let isSpinning = false;
 let stopRequested = [false, false, false];
@@ -33,6 +34,14 @@ const leverAssembly = document.getElementById('leverAssembly');
 const machine = document.getElementById('machine');
 const mobileSpinBtn = document.getElementById('mobileSpinBtn');
 
+function updateMachineScale() {
+    const scaleX = window.innerWidth / 420;
+    const scaleY = window.innerHeight / 480;
+    const scale = Math.min(scaleX, scaleY) * 0.9; // 0.9 for margin
+    machine.style.setProperty('--machine-scale', `${scale}`);
+}
+window.addEventListener('load', updateMachineScale);
+window.addEventListener('resize', updateMachineScale);
 function getRandomSymbol() {
     const totalWeight = SYMBOLS.reduce((sum, s) => sum + s.weight, 0);
     let random = Math.random() * totalWeight;
@@ -44,7 +53,7 @@ function getRandomSymbol() {
 }
 
 function createReelStrip() {
-    const cycles = 4;
+    const cycles = REEL_STRIP_CYCLES;
     const symbols = Array.from({ length: SYMBOLS_PER_REEL * cycles }, getRandomSymbol);
     return symbols.map(s => 
         `<div class="reel-symbol" style="color: ${s.color}" data-name="${s.name}">${s.emoji}</div>`
@@ -55,8 +64,8 @@ function initReels() {
     reelElements.forEach((reel, index) => {
         reel.innerHTML = `<div class="reel-inner">${createReelStrip()}</div>`;
         const inner = reel.querySelector('.reel-inner');
-        inner.style.transform = `translateY(-3240px)`;
-        inner.dataset.basePos = '-3240';
+        inner.style.transform = `translateY(-7920px)`;
+        inner.dataset.basePos = '-7920';
         
         reel.addEventListener('click', (e) => {
             if (isSpinning && !stopRequested[index]) {
@@ -94,7 +103,7 @@ function spinReel(reel, baseDuration, finalSymbol, reelIndex) {
     return new Promise(resolve => {
         const inner = reel.querySelector('.reel-inner');
         
-        const cycles = 4;
+        const cycles = REEL_STRIP_CYCLES;
         const stripSymbols = [];
         for (let c = 0; c < 3; c++) {
             for (let i = 0; i < SYMBOLS_PER_REEL; i++) {
@@ -206,11 +215,23 @@ async function spin() {
     
     shakeMachine();
     
-    const spin1 = spinReel(reelElements[0], 1250, finalSymbols[0], 0);
-    const spin2 = spinReel(reelElements[1], 1600, finalSymbols[1], 1);
-    const spin3 = spinReel(reelElements[2], 2000, finalSymbols[2], 2);
+    // Base spin durations (ms)
+    const baseDurations = [1250, 1600, 2000];
+    const targetInterval = 2000; // 2 seconds between stops
+    let prevStop = 0;
+    const delays = baseDurations.map(dur => {
+        const extra = Math.max(0, (prevStop + targetInterval) - dur);
+        prevStop = dur + extra;
+        return extra; // additional ms to wait after spinReel resolves
+    });
     
-    await Promise.all([spin1, spin2, spin3]);
+    // Create promises that resolve after spinReel + extra delay
+    const spinPromises = reelElements.map((reel, idx) =>
+        spinReel(reel, baseDurations[idx], finalSymbols[idx], idx)
+            .then(() => new Promise(res => setTimeout(res, delays[idx])))
+    );
+    
+    await Promise.all(spinPromises);
     
     isSpinning = false;
     

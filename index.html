@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Каzzино</title>
+    <title>Slot Machine</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,10 +21,8 @@
             
             <!-- Игровое окно -->
             <div class="game-window">
-                <!-- Левый индикатор -->
                 <div class="result-pointer" id="resultPointer"></div>
                 
-                <!-- Барабаны -->
                 <div class="reels-container">
                     <div class="reel-column">
                         <div class="reel-frame">
@@ -45,16 +43,13 @@
                     </div>
                 </div>
                 
-                <!-- Золотые акценты -->
                 <div class="gold-accents">
                     <span class="gold-line"></span>
                     <span class="gold-text">JACKPOT</span>
                     <span class="gold-line"></span>
                 </div>
                 
-                <!-- Стекло -->
                 <div class="glass-overlay"></div>
-                <!-- Центральная линия выплат -->
                 <div class="payline"></div>
             </div>
             
@@ -73,12 +68,14 @@
                 <div class="coin-slot"></div>
             </div>
             
-            <!-- РЫЧАГ СПРАВА -->
+            <!-- РЫЧАГ: шарнир чуть ниже середины, балка вверх, красный шар сверху -->
             <div class="lever-assembly" id="leverAssembly">
-                <div class="lever-hinge"></div>
                 <div class="lever-shaft" id="leverShaft">
                     <div class="lever-knob"></div>
+                    <div class="lever-arm"></div>
                 </div>
+                <div class="lever-bracket"></div>
+                <div class="lever-hinge"></div>
             </div>
             
             <!-- Мобильная кнопка SPIN (только < 480px) -->
