@@ -7,7 +7,7 @@ const SYMBOLS = [
     { emoji: '🔔', weight: 10, color: '#ffd700', name: 'bell' },
     { emoji: '⭐', weight: 5, color: '#ff00ff', name: 'star' },
     { emoji: '💎', weight: 2, color: '#00ffff', name: 'diamond' },
-    { emoji: '🍌', weight: 2000, color: '#ffcc00d4', name: 'banana' }
+    { emoji: '🍌', weight: 15, color: '#ffcc00d4', name: 'banana' }
 ];
 
 // Математика барабана
