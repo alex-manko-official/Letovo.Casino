@@ -96,17 +96,6 @@ body::after {
         0 10px 30px rgba(0,0,0,0.3);
 }
 
-/*** СКРЫТЫЕ 3D ГРАНИ === */
-.side-face.right-side,
-.side-face.left-side,
-.top-face {
-    display: none;
-}
-
-.machine::after {
-    display: none;
-}
-
 /*** ВЕРХНЯЯ ПАНЕЛЬ === */
 .top-panel {
     position: absolute;
@@ -594,6 +583,139 @@ body::after {
     box-shadow: inset 0 2px 6px rgba(0,0,0,0.8), 0 1px 2px rgba(255,250,240,0.1);
 }
 
+/*** РЫЧАГ СПРАВА — ПРАВИЛЬНЫЙ 3D НАКЛОН К ПОЛЬЗОВАТЕЛЮ === */
+.lever-assembly {
+    position: absolute;
+    right: -65px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 65px;
+    height: 280px;
+    z-index: 30;
+    /* Перспектива ТОЛЬКО для рычага */
+    perspective: 500px;
+    perspective-origin: 50% 15%; /* Перспектива от шарнира */
+}
+
+.lever-hinge {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, 
+        #d4ccc0 0%,
+        #c8bfb2 30%,
+        #b8b0a2 60%,
+        #a8a092 100%
+    );
+    border: 2px solid #989082;
+    border-radius: 50%;
+    box-shadow: 
+        inset 0 2px 4px rgba(255,250,240,0.5),
+        inset 0 -2px 4px rgba(100,90,80,0.5),
+        0 3px 10px rgba(0,0,0,0.4),
+        0 0 0 2px rgba(200,190,175,0.4);
+    z-index: 3;
+}
+
+.lever-hinge::before {
+    content: '';
+    position: absolute;
+    inset: 5px;
+    border: 1px solid rgba(160,150,135,0.6);
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, rgba(255,250,240,0.4), transparent 70%);
+}
+
+.lever-hinge::after {
+    content: '';
+    position: absolute;
+    inset: 10px;
+    background: radial-gradient(circle, #7a7264 0%, #5a5244 100%);
+    border-radius: 50%;
+}
+
+.lever-shaft {
+    position: absolute;
+    top: 35px;
+    left: 50%;
+    transform: translateX(-50%) translateZ(0);
+    width: 16px;
+    height: 200px;
+    background: linear-gradient(90deg, 
+        #888072 0%,
+        #b8b0a2 20%,
+        #e8e0d2 45%,
+        #f5f0e8 50%,
+        #e8e0d2 55%,
+        #b8b0a2 80%,
+        #888072 100%
+    );
+    border-radius: 8px;
+    box-shadow: 
+        5px 5px 15px rgba(0,0,0,0.5),
+        inset 1px 0 4px rgba(255,250,240,0.5),
+        inset -1px 0 4px rgba(100,90,80,0.4);
+    /* Ось вращения — ВВЕРХУ вала (в шарнире) */
+    transform-origin: top center;
+    transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 2;
+    transform-style: preserve-3d;
+}
+
+.lever-shaft::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,250,0.25) 50%, transparent 100%);
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+.lever-knob {
+    position: absolute;
+    top: -32px;
+    left: 50%;
+    transform: translateX(-50%) translateZ(10px);
+    width: 56px;
+    height: 56px;
+    background: radial-gradient(circle at 30% 30%, 
+        #ff7b6b 0%,
+        #e84a3a 25%,
+        #c0392b 55%,
+        #8b2500 100%
+    );
+    border-radius: 50%;
+    border: 3px solid #5a1a00;
+    box-shadow: 
+        5px 8px 20px rgba(0,0,0,0.6),
+        inset -5px -5px 12px rgba(0,0,0,0.5),
+        inset 3px 3px 8px rgba(255,180,160,0.4),
+        0 0 0 4px rgba(200,190,175,0.3);
+    z-index: 4;
+    transform-style: preserve-3d;
+}
+
+.lever-knob::before {
+    content: '';
+    position: absolute;
+    top: 9px; left: 15px;
+    width: 16px; height: 16px;
+    background: radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 70%);
+    border-radius: 50%; filter: blur(1px);
+}
+
+/*** АНИМАЦИЯ ТЯГИ РЫЧАГА — НАКЛОН К ПОЛЬЗОВАТЕЛЮ === */
+.lever-shaft.pulled {
+    /* rotateX(-65deg) = верхний наконечник (рукоятка) ДВИГАЕТСЯ К ПОЛЬЗОВАТЕЛЮ */
+    /* translateZ(25px) — выдвигаем чуть вперёд для объёма */
+    /* translateY(-10px) — небольшой подъём рукоятки вверх при наклоне */
+    transform: translateX(-50%) translateZ(25px) rotateX(-65deg) translateY(-10px);
+    transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
 /*** ВИБРАЦИЯ КОРПУСА === */
 .machine.shaking {
     animation: machineShake 0.08s ease-in-out 4;
@@ -673,5 +795,17 @@ body::after {
     .front-panel { bottom: 40px; left: 18px; right: 18px; height: 40px; }
     .casino-text { font-size: 1rem; }
     .coin-tray { bottom: 8px; left: 18px; right: 18px; height: 30px; }
+    
+    /* Рычаг на мобильном - меньше, ниже */
+    .lever-assembly { 
+        right: -55px; 
+        width: 55px; 
+        height: 240px; 
+        perspective: 400px; 
+    }
+    .lever-hinge { top: 15px; width: 26px; height: 26px; }
+    .lever-shaft { top: 28px; width: 14px; height: 175px; }
+    .lever-knob { top: -28px; width: 48px; height: 48px; }
+    
     .mobile-spin-btn { display: block; }
 }

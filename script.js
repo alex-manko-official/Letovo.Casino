@@ -6,7 +6,8 @@ const SYMBOLS = [
     { emoji: '🍇', weight: 12, color: '#8844ff', name: 'grapes' },
     { emoji: '🔔', weight: 10, color: '#ffd700', name: 'bell' },
     { emoji: '⭐', weight: 5, color: '#ff00ff', name: 'star' },
-    { emoji: '💎', weight: 2, color: '#00ffff', name: 'diamond' }
+    { emoji: '💎', weight: 2, color: '#00ffff', name: 'diamond' },
+    { emoji: '🍌', weight: 20, color: '#ffcc00d4', name: 'banana' }
 ];
 
 // Математика барабана
@@ -26,6 +27,8 @@ const reelElements = [
 ];
 
 const resultPointer = document.getElementById('resultPointer');
+const leverShaft = document.getElementById('leverShaft');
+const leverAssembly = document.getElementById('leverAssembly');
 const machine = document.getElementById('machine');
 const mobileSpinBtn = document.getElementById('mobileSpinBtn');
 
@@ -90,7 +93,6 @@ function spinReel(reel, baseDuration, finalSymbol, reelIndex) {
     return new Promise(resolve => {
         const inner = reel.querySelector('.reel-inner');
         
-        // Генерируем длинную ленту
         const cycles = 4;
         const stripSymbols = [];
         for (let c = 0; c < 3; c++) {
@@ -127,7 +129,6 @@ function spinReel(reel, baseDuration, finalSymbol, reelIndex) {
             let easedProgress;
             
             if (stopTime !== null) {
-                // Ручная остановка: плавное затухание за 500мс
                 const stopElapsed = elapsed - stopTime;
                 const stopProgress = Math.min(stopElapsed / 500, 1);
                 easedProgress = easeOutCubic(stopProgress);
@@ -138,8 +139,6 @@ function spinReel(reel, baseDuration, finalSymbol, reelIndex) {
                     return;
                 }
             } else {
-                // Автоматическое ПЛАВНОЕ замедление каждого барабана отдельно
-                // Используем easeOutQuart для естественного замедления
                 const progress = Math.min(elapsed / baseDuration, 1);
                 easedProgress = easeOutQuart(progress);
                 
@@ -189,18 +188,23 @@ function animatePointer() {
     setTimeout(() => resultPointer.classList.remove('hit'), 600);
 }
 
+function pullLever() {
+    leverShaft.classList.add('pulled');
+    setTimeout(() => leverShaft.classList.remove('pulled'), 300);
+}
+
 async function spin() {
     if (isSpinning) return;
     
     isSpinning = true;
     stopRequested = [false, false, false];
     
+    pullLever();
+    
     const finalSymbols = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
     
     shakeMachine();
     
-    // ВСЕ БАРАБАНЫ ЗАПУСКАЮТСЯ ОДНОВРЕМЕННО
-    // Каждый замедляется СВОИМ темпом (разная длительность)
     const spin1 = spinReel(reelElements[0], 1250, finalSymbols[0], 0);
     const spin2 = spinReel(reelElements[1], 1600, finalSymbols[1], 1);
     const spin3 = spinReel(reelElements[2], 2000, finalSymbols[2], 2);
@@ -228,9 +232,12 @@ function checkResult(symbols) {
     }
 }
 
-// Запуск: клик по корпусу, пробел, мобильная кнопка
+// Запуск: рычаг, клик по корпусу, пробел, мобильная кнопка
+leverAssembly.addEventListener('click', spin);
+leverAssembly.addEventListener('touchstart', (e) => { e.preventDefault(); if (!isSpinning) spin(); }, { passive: false });
+
 machine.addEventListener('click', (e) => {
-    if (!isSpinning && !e.target.closest('.mobile-spin-btn') && !e.target.closest('.reel')) {
+    if (!isSpinning && !e.target.closest('.mobile-spin-btn') && !e.target.closest('.reel') && !e.target.closest('.lever-assembly')) {
         spin();
     }
 });
