@@ -583,7 +583,7 @@ body::after {
     box-shadow: inset 0 2px 6px rgba(0,0,0,0.8), 0 1px 2px rgba(255,250,240,0.1);
 }
 
-/*** РЫЧАГ СПРАВА — ПРАВИЛЬНЫЙ 3D НАКЛОН К ПОЛЬЗОВАТЕЛЮ === */
+/*** РЫЧАГ СПРАВА — ИСПРАВЛЕННЫЙ 3D НАКЛОН (БЕЗ СМЕЩЕНИЯ КРЕПЛЕНИЯ) === */
 .lever-assembly {
     position: absolute;
     right: -65px;
@@ -592,9 +592,8 @@ body::after {
     width: 65px;
     height: 280px;
     z-index: 30;
-    /* Перспектива ТОЛЬКО для рычага */
     perspective: 500px;
-    perspective-origin: 50% 15%; /* Перспектива от шарнира */
+    perspective-origin: 50% 15%;
 }
 
 .lever-hinge {
@@ -641,7 +640,7 @@ body::after {
     position: absolute;
     top: 35px;
     left: 50%;
-    transform: translateX(-50%) translateZ(0);
+    transform: translateX(-50%); /* БЕЗ translateZ - ось строго в шарнире */
     width: 16px;
     height: 200px;
     background: linear-gradient(90deg, 
@@ -658,7 +657,7 @@ body::after {
         5px 5px 15px rgba(0,0,0,0.5),
         inset 1px 0 4px rgba(255,250,240,0.5),
         inset -1px 0 4px rgba(100,90,80,0.4);
-    /* Ось вращения — ВВЕРХУ вала (в шарнире) */
+    /* Ось вращения — ВВЕРХУ вала (в центре шарнира) */
     transform-origin: top center;
     transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 2;
@@ -707,12 +706,11 @@ body::after {
     border-radius: 50%; filter: blur(1px);
 }
 
-/*** АНИМАЦИЯ ТЯГИ РЫЧАГА — НАКЛОН К ПОЛЬЗОВАТЕЛЮ === */
+/*** АНИМАЦИЯ ТЯГИ РЫЧАГА — ТОЛЬКО ПОВОРОТ ВОКРУГ ШАРНИРА === */
 .lever-shaft.pulled {
-    /* rotateX(-65deg) = верхний наконечник (рукоятка) ДВИГАЕТСЯ К ПОЛЬЗОВАТЕЛЮ */
-    /* translateZ(25px) — выдвигаем чуть вперёд для объёма */
-    /* translateY(-10px) — небольшой подъём рукоятки вверх при наклоне */
-    transform: translateX(-50%) translateZ(25px) rotateX(-65deg) translateY(-10px);
+    /* ТОЛЬКО rotateX - вал вращается вокруг своей верхушки (шарнира) */
+    /* Нижняя точка крепления НЕ ДВИГАЕТСЯ */
+    transform: translateX(-50%) rotateX(-65deg);
     transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -796,7 +794,6 @@ body::after {
     .casino-text { font-size: 1rem; }
     .coin-tray { bottom: 8px; left: 18px; right: 18px; height: 30px; }
     
-    /* Рычаг на мобильном - меньше, ниже */
     .lever-assembly { 
         right: -55px; 
         width: 55px; 
