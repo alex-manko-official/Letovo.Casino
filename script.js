@@ -31,28 +31,52 @@ let isSpinning = false;
 const bgMusic = document.getElementById('background-music');
 const startSound = document.getElementById('start-sound');
 
-
+// Playlist of background tracks (add more files as needed)
+const musicTracks = [
+  'assets/music/background.mp3'
+  // , 'assets/music/track2.mp3', 'assets/music/track3.mp3'
+];
+let musicIndex = 0;
 let bgStarted = false;
 const hasInteracted = localStorage.getItem('audioInitialized') === 'true';
+
 // Ensure background music only starts after start sound ends
 startSound.addEventListener('ended', () => {
-    tryStartBg();
+  tryStartBg();
 });
 
 function tryStartStart() {
-    // Attempt to play start sound each time (if not already playing)
-    if (startSound.paused) {
-        startSound.play().catch(() => {});
-    }
+  // Attempt to play start sound each time (if not already playing)
+  if (startSound.paused) {
+    startSound.play().catch(() => {});
+  }
 }
+
+function playNextTrack() {
+  if (musicIndex >= musicTracks.length) {
+    // finished playlist
+    return;
+  }
+  bgMusic.src = musicTracks[musicIndex];
+  bgMusic.muted = false;
+  bgMusic.play().catch(() => {});
+}
+
 function tryStartBg() {
-    if (!bgStarted) {
-        bgMusic.muted = false;
-        bgMusic.play().then(() => {
-            bgStarted = true;
-        }).catch(() => {});
-    }
+  if (!bgStarted) {
+    bgStarted = true;
+    playNextTrack();
+  }
 }
+
+// Advance playlist when a track ends
+bgMusic.addEventListener('ended', () => {
+  musicIndex++;
+  if (musicIndex >= musicTracks.length) {
+    musicIndex = 0;
+  }
+  playNextTrack();
+});
 
 // On load: if user has interacted before, try to play start sound immediately
 if (hasInteracted) {
@@ -76,9 +100,7 @@ window.addEventListener('touchstart', unlockAudio);
 window.addEventListener('scroll', unlockAudio);
 window.addEventListener('keydown', unlockAudio);
 
-/* =========================================
-    ВЫБОР СЛУЧАЙНОГО СИМВОЛА
-======================================= */
+
 /* =========================================
    ВЫБОР СЛУЧАЙНОГО СИМВОЛА
 ========================================= */
