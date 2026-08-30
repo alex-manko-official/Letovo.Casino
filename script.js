@@ -27,6 +27,46 @@ const resultPointer = document.getElementById("resultPointer");
 let isSpinning = false;
 
 
+// Background music and start sound
+const bgMusic = document.getElementById('background-music');
+const startSound = document.getElementById('start-sound');
+const curtains = document.querySelector('.curtains');
+
+let startPlayed = false;
+let bgPlayed = false;
+
+function tryPlayStart() {
+    if (!startPlayed) {
+        startSound.play().then(() => {
+            startPlayed = true;
+            curtains.classList.add('open');
+        }).catch(() => {});
+    }
+}
+function tryPlayBg() {
+    if (!bgPlayed) {
+        bgMusic.play().then(() => { bgPlayed = true; }).catch(() => {});
+    }
+}
+
+// Try to play both on load
+tryPlayStart();
+tryPlayBg();
+
+function unlockAudio() {
+    tryPlayStart();
+    tryPlayBg();
+    // Remove listeners
+    window.removeEventListener('click', unlockAudio);
+    window.removeEventListener('touchstart', unlockAudio);
+}
+
+window.addEventListener('click', unlockAudio);
+window.addEventListener('touchstart', unlockAudio);
+
+/* =========================================
+    ВЫБОР СЛУЧАЙНОГО СИМВОЛА
+======================================= */
 /* =========================================
    ВЫБОР СЛУЧАЙНОГО СИМВОЛА
 ========================================= */
