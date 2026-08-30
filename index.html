@@ -15,9 +15,23 @@
     <script>
         document.getElementById('startBtn').addEventListener('click', () => {
             localStorage.setItem('audioInitialized', 'true');
-            // optional fade out
-            document.body.style.opacity = '0';
-            setTimeout(() => { location.href = 'game.html'; }, 300);
+            // Play start sound
+            const startSound = new Audio('assets/sounds/start.mp3');
+            startSound.play().then(() => {
+                // Mark that start sound has been played
+                localStorage.setItem('startSoundPlayed', 'true');
+                // optional fade out
+                document.body.style.opacity = '0';
+                // Wait for sound to end before navigating
+                startSound.addEventListener('ended', () => {
+                    setTimeout(() => { location.href = 'game.html'; }, 300);
+                });
+            }).catch(err => {
+                // If autoplay blocked, fallback: navigate after short delay?
+                console.warn('Autoplay blocked:', err);
+                document.body.style.opacity = '0';
+                setTimeout(() => { location.href = 'game.html'; }, 300);
+            });
         });
     </script>
 </body>

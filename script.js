@@ -41,6 +41,12 @@ const musicTracks = [
 let musicIndex = 0;
 let bgStarted = false;
 const hasInteracted = localStorage.getItem('audioInitialized') === 'true';
+const startSoundPlayed = localStorage.getItem('startSoundPlayed') === 'true';
+
+// If we already interacted and start sound has been played, start background music immediately
+if (hasInteracted && startSoundPlayed) {
+    tryStartBg();
+}
 
 // Ensure background music only starts after start sound ends
 startSound.addEventListener('ended', () => {
@@ -48,8 +54,12 @@ startSound.addEventListener('ended', () => {
 });
 
 function tryStartStart() {
-  // Attempt to play start sound each time (if not already playing)
-  if (startSound.paused) {
+  // If start sound already played on intro, do not play again
+  if (startSoundPlayed) {
+    return;
+  }
+  // Attempt to play start sound only if it hasn't been played yet
+  if (startSound.paused && !startSound.ended) {
     startSound.play().catch(() => {});
   }
 }
@@ -80,16 +90,20 @@ bgMusic.addEventListener('ended', () => {
   playNextTrack();
 });
 
-// On load: if user has interacted before, try to play start sound immediately
-if (hasInteracted) {
-    tryStartStart();
-}
+
 
 // First user interaction (click, touch, scroll, keydown) starts audio if not already started
 function unlockAudio() {
-    tryStartStart();
+    // Unlock audio playback with a silent sound
+    const silent = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQ==');
+    silent.volume = 0;
+    silent.play().catch(() => {});
     // Mark that the user has interacted so that on future loads we try to play audio automatically
     localStorage.setItem('audioInitialized', 'true');
+    // If start sound has already been played, we can start background music now
+    if (startSoundPlayed) {
+        tryStartBg();
+    }
     // Remove listeners
     window.removeEventListener('click', unlockAudio);
     window.removeEventListener('touchstart', unlockAudio);
