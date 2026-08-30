@@ -31,36 +31,50 @@ let isSpinning = false;
 const bgMusic = document.getElementById('background-music');
 const startSound = document.getElementById('start-sound');
 
-let startPlayed = false;
-let bgPlayed = false;
 
-function tryPlayStart() {
-    if (!startPlayed) {
-        startSound.play().then(() => {
-            startPlayed = true;
+let bgStarted = false;
+const hasInteracted = localStorage.getItem('audioInitialized') === 'true';
+// Ensure background music only starts after start sound ends
+startSound.addEventListener('ended', () => {
+    tryStartBg();
+});
+
+function tryStartStart() {
+    // Attempt to play start sound each time (if not already playing)
+    if (startSound.paused) {
+        startSound.play().catch(() => {});
+    }
+}
+function tryStartBg() {
+    if (!bgStarted) {
+        bgMusic.muted = false;
+        bgMusic.play().then(() => {
+            bgStarted = true;
         }).catch(() => {});
     }
 }
-function tryPlayBg() {
-    if (!bgPlayed) {
-        bgMusic.play().then(() => { bgPlayed = true; }).catch(() => {});
-    }
+
+// On load: if user has interacted before, try to play start sound immediately
+if (hasInteracted) {
+    tryStartStart();
 }
 
-// Try to play both on load
-tryPlayStart();
-tryPlayBg();
-
+// First user interaction (click, touch, scroll, keydown) starts audio if not already started
 function unlockAudio() {
-    tryPlayStart();
-    tryPlayBg();
+    tryStartStart();
+    // Mark that the user has interacted so that on future loads we try to play audio automatically
+    localStorage.setItem('audioInitialized', 'true');
     // Remove listeners
     window.removeEventListener('click', unlockAudio);
     window.removeEventListener('touchstart', unlockAudio);
+    window.removeEventListener('scroll', unlockAudio);
+    window.removeEventListener('keydown', unlockAudio);
 }
 
 window.addEventListener('click', unlockAudio);
 window.addEventListener('touchstart', unlockAudio);
+window.addEventListener('scroll', unlockAudio);
+window.addEventListener('keydown', unlockAudio);
 
 /* =========================================
     ВЫБОР СЛУЧАЙНОГО СИМВОЛА
