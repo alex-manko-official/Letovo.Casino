@@ -663,31 +663,4 @@ body::before {
     .coin-tray { top: 370px; height: 44px; }
     .lever { top: 145px; transform: scale(.78); }
 }
-.curtains {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 10000;
-    overflow: hidden;
-}
-.curtain-left,
-.curtain-right {
-    position: absolute;
-    top: 0;
-    height: 100%;
-    width: 50vw;
-    background: #8b0000;
-    transition: transform 2s ease;
-}
-.curtain-left {
-    left: 0;
-}
-.curtain-right {
-    right: 0;
-}
-.curtains.open .curtain-left {
-    transform: translateX(-100%);
-}
-.curtains.open .curtain-right {
-    transform: translateX(100%);
-}
+

@@ -30,7 +30,6 @@ let isSpinning = false;
 // Background music and start sound
 const bgMusic = document.getElementById('background-music');
 const startSound = document.getElementById('start-sound');
-const curtains = document.querySelector('.curtains');
 
 let startPlayed = false;
 let bgPlayed = false;
@@ -39,7 +38,6 @@ function tryPlayStart() {
     if (!startPlayed) {
         startSound.play().then(() => {
             startPlayed = true;
-            curtains.classList.add('open');
         }).catch(() => {});
     }
 }
