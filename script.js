@@ -29,12 +29,14 @@ let isSpinning = false;
 
 // Background music and start sound
 const bgMusic = document.getElementById('background-music');
+bgMusic.volume = 0.3; // Make playlist quieter
 const startSound = document.getElementById('start-sound');
 
 // Playlist of background tracks (add more files as needed)
 const musicTracks = [
-  'assets/music/background.mp3'
-  // , 'assets/music/track2.mp3', 'assets/music/track3.mp3'
+  'assets/music/muxic1.mp3',
+  'assets/music/music2.mp3',
+  'assets/music/music3.mp3'
 ];
 let musicIndex = 0;
 let bgStarted = false;
