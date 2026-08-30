@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#050304">
+    <title>Slot Machine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { opacity: 0; transition: opacity 1s ease-in-out; }
+        body.loaded { opacity: 1; }
+    </style>
+</head>
+<body>
+    <audio id="background-music" src="assets/music/background.mp3" autoplay loop muted></audio>
+    <audio id="start-sound" src="assets/sounds/start.mp3"></audio>
+    <main class="scene">
+        <div class="machine-wrap">
+            <section class="machine" id="machine" aria-label="Игровой автомат">
+                <div class="machine-side" aria-hidden="true"></div>
+                <div class="machine-front">
+                    <div class="top-cap">
+                        <span class="top-title">Slot Machine</span>
+                    </div>
+
+                    <div class="reel-window" id="reelWindow">
+                        <div class="result-pointer" id="resultPointer" aria-hidden="true"></div>
+
+                        <div class="reels" id="reels">
+                            <div class="reel-frame"><div class="reel" id="reel1"></div></div>
+                            <div class="separator" aria-hidden="true"></div>
+                            <div class="reel-frame"><div class="reel" id="reel2"></div></div>
+                            <div class="separator" aria-hidden="true"></div>
+                            <div class="reel-frame"><div class="reel" id="reel3"></div></div>
+                        </div>
+
+                        <div class="glass" aria-hidden="true"></div>
+                    </div>
+
+                    <div class="sloped-deck" aria-hidden="true">
+                        <div class="coin-slot"></div>
+                    </div>
+
+                    <div class="casino-plaque">CASINO</div>
+
+                    <div class="coin-tray" aria-hidden="true">
+                        <div class="tray-opening"></div>
+                    </div>
+                </div>
+
+                <div class="lever" id="lever" aria-label="Рычаг">
+                    <div class="lever-shaft"></div>
+                    <div class="lever-ball"></div>
+                    <div class="lever-joint"></div>
+                </div>
+
+                <button class="spin-button" id="spinButton" type="button">SPIN</button>
+            </section>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script>document.body.classList.add('loaded');</script>
+</body>
+</html>
