@@ -1,284 +1,552 @@
 const SYMBOLS = [
-    { emoji: '7️⃣', weight: 8, color: '#ffd700', name: 'seven' },
-    { emoji: '🍒', weight: 25, color: '#e84a3a', name: 'cherry' },
-    { emoji: '🍋', weight: 20, color: '#ffdd00', name: 'lemon' },
-    { emoji: '🍊', weight: 18, color: '#ff8800', name: 'orange' },
-    { emoji: '🍇', weight: 12, color: '#8844ff', name: 'grapes' },
-    { emoji: '🔔', weight: 10, color: '#ffd700', name: 'bell' },
-    { emoji: '⭐', weight: 5, color: '#ff00ff', name: 'star' },
-    { emoji: '💎', weight: 2, color: '#00ffff', name: 'diamond' },
-    { emoji: '🍌', weight: 15, color: '#ffcc00d4', name: 'banana' },
-    { emoji: '🍑', weight: 15, color: '#e79f68d4', name: 'banana' }
+    { emoji: "7",  weight: 8,  color: "#b51d18", name: "seven" },
+    { emoji: "🍒", weight: 25, color: "#c51f1b", name: "cherry" },
+    { emoji: "🍋", weight: 20, color: "#d3a500", name: "lemon" },
+    { emoji: "🍊", weight: 18, color: "#c96f10", name: "orange" },
+    { emoji: "🍇", weight: 12, color: "#7547a8", name: "grapes" },
+    { emoji: "🔔", weight: 10, color: "#b58a18", name: "bell" },
+    { emoji: "★", weight: 5,  color: "#b58a18", name: "star" },
+    { emoji: "◆", weight: 2,  color: "#2b7b8a", name: "diamond" },
+    { emoji: "🍌", weight: 15, color: "#c99f0d", name: "banana" }
 ];
 
-// Математика барабана
-const REEL_HEIGHT = 60;
-const SYMBOLS_PER_REEL = 22;
-const REEL_STRIP_CYCLES = 12; // количество повторов символов в ленте для буфера
-const VIEWPORT_HEIGHT = 180;
-const CENTER_OFFSET = 60;
-const STRIP_HEIGHT = SYMBOLS_PER_REEL * REEL_HEIGHT;
-
-let isSpinning = false;
-let stopRequested = [false, false, false];
+const REEL_HEIGHT = 63;
+const ANIMATION_SYMBOLS = 35;
 
 const reelElements = [
-    document.getElementById('reel1'),
-    document.getElementById('reel2'),
-    document.getElementById('reel3')
+    document.getElementById("reel1"),
+    document.getElementById("reel2"),
+    document.getElementById("reel3")
 ];
 
-const resultPointer = document.getElementById('resultPointer');
-const leverShaft = document.getElementById('leverShaft');
-const leverAssembly = document.getElementById('leverAssembly');
-const machine = document.getElementById('machine');
-const mobileSpinBtn = document.getElementById('mobileSpinBtn');
+const machine = document.getElementById("machine");
+const lever = document.getElementById("lever");
+const spinButton = document.getElementById("spinButton");
+const resultPointer = document.getElementById("resultPointer");
 
-function updateMachineScale() {
-    const scaleX = window.innerWidth / 420;
-    const scaleY = window.innerHeight / 480;
-    const scale = Math.min(scaleX, scaleY) * 0.9; // 0.9 for margin
-    machine.style.setProperty('--machine-scale', `${scale}`);
-}
-window.addEventListener('load', updateMachineScale);
-window.addEventListener('resize', updateMachineScale);
-function getRandomSymbol() {
-    const totalWeight = SYMBOLS.reduce((sum, s) => sum + s.weight, 0);
-    let random = Math.random() * totalWeight;
+let isSpinning = false;
+
+
+/* =========================================
+   ВЫБОР СЛУЧАЙНОГО СИМВОЛА
+========================================= */
+
+function pickSymbol() {
+    const totalWeight = SYMBOLS.reduce(
+        (sum, symbol) => sum + symbol.weight,
+        0
+    );
+
+    let value = Math.random() * totalWeight;
+
     for (const symbol of SYMBOLS) {
-        random -= symbol.weight;
-        if (random <= 0) return symbol;
+        value -= symbol.weight;
+
+        if (value <= 0) {
+            return symbol;
+        }
     }
+
     return SYMBOLS[0];
 }
 
-function createReelStrip() {
-    const cycles = REEL_STRIP_CYCLES;
-    const symbols = Array.from({ length: SYMBOLS_PER_REEL * cycles }, getRandomSymbol);
-    return symbols.map(s => 
-        `<div class="reel-symbol" style="color: ${s.color}" data-name="${s.name}">${s.emoji}</div>`
-    ).join('');
+
+/* =========================================
+   HTML СИМВОЛА
+========================================= */
+
+function symbolMarkup(symbol) {
+    return `
+        <div
+            class="reel-symbol"
+            style="color:${symbol.color}"
+            data-name="${symbol.name}"
+        >
+            ${symbol.emoji}
+        </div>
+    `;
 }
+
+
+/* =========================================
+   НАЧАЛЬНОЕ СОСТОЯНИЕ БАРАБАНОВ
+========================================= */
+
+function renderInitialReel(reel) {
+    const symbols = Array.from(
+        { length: 12 },
+        pickSymbol
+    );
+
+    reel.innerHTML = `
+        <div class="reel-inner">
+            ${symbols.map(symbolMarkup).join("")}
+        </div>
+    `;
+
+    const inner = reel.querySelector(".reel-inner");
+
+    inner.style.transform =
+        `translateY(-${REEL_HEIGHT * 4}px)`;
+}
+
 
 function initReels() {
-    reelElements.forEach((reel, index) => {
-        reel.innerHTML = `<div class="reel-inner">${createReelStrip()}</div>`;
-        const inner = reel.querySelector('.reel-inner');
-        inner.style.transform = `translateY(-7920px)`;
-        inner.dataset.basePos = '-7920';
-        
-        reel.addEventListener('click', (e) => {
-            if (isSpinning && !stopRequested[index]) {
-                e.stopPropagation();
-                requestStop(index);
-            }
-        });
-        reel.addEventListener('touchstart', (e) => {
-            if (isSpinning && !stopRequested[index]) {
-                e.stopPropagation();
-                requestStop(index);
-            }
-        }, { passive: false });
-    });
+    reelElements.forEach(renderInitialReel);
 }
 
-function requestStop(reelIndex) {
-    stopRequested[reelIndex] = true;
-    const frame = reelElements[reelIndex].closest('.reel-frame');
-    if (frame) {
-        frame.style.boxShadow = 'inset 0 2px 6px rgba(0,0,0,0.5), 0 0 0 1px rgba(60,50,40,0.5), 0 0 15px rgba(255,215,0,0.8), inset 0 0 15px rgba(255,215,0,0.3)';
-        setTimeout(() => { frame.style.boxShadow = ''; }, 200);
-    }
-}
 
-function easeOutCubic(t) {
-    return 1 - Math.pow(1 - t, 3);
-}
+/* =========================================
+   EASING
+========================================= */
 
 function easeOutQuart(t) {
     return 1 - Math.pow(1 - t, 4);
 }
 
-function spinReel(reel, baseDuration, finalSymbol, reelIndex) {
+
+/* =========================================
+   ВРАЩЕНИЕ ОДНОГО БАРАБАНА
+========================================= */
+
+function spinSingleReel(
+    reel,
+    finalSymbol,
+    duration,
+    extraDelay = 0
+) {
     return new Promise(resolve => {
-        const inner = reel.querySelector('.reel-inner');
-        
-        const cycles = REEL_STRIP_CYCLES;
-        const stripSymbols = [];
-        for (let c = 0; c < 3; c++) {
-            for (let i = 0; i < SYMBOLS_PER_REEL; i++) {
-                stripSymbols.push(getRandomSymbol());
-            }
-        }
-        for (let i = 0; i < SYMBOLS_PER_REEL - 1; i++) {
-            stripSymbols.push(getRandomSymbol());
-        }
-        stripSymbols.push(finalSymbol);
-        
-        inner.innerHTML = stripSymbols.map(s => 
-            `<div class="reel-symbol" style="color: ${s.color}" data-name="${s.name}">${s.emoji}</div>`
-        ).join('');
-        
-        const START_POSITION = -3240;
-        const END_POSITION = -5160;
-        
-        inner.style.transform = `translateY(${START_POSITION}px)`;
-        
-        let stopTime = null;
-        const startTime = Date.now();
-        
-        function animate() {
-            if (!isSpinning && stopTime === null) return;
-            
-            const elapsed = Date.now() - startTime;
-            
-            if (stopRequested[reelIndex] && stopTime === null) {
-                stopTime = elapsed;
-            }
-            
-            let easedProgress;
-            
-            if (stopTime !== null) {
-                const stopElapsed = elapsed - stopTime;
-                const stopProgress = Math.min(stopElapsed / 500, 1);
-                easedProgress = easeOutCubic(stopProgress);
-                
-                if (stopProgress >= 1) {
-                    inner.style.transform = `translateY(${END_POSITION}px)`;
-                    resolve();
-                    return;
-                }
+
+        const inner =
+            reel.querySelector(".reel-inner");
+
+        /*
+         * Создаём длинную ленту символов.
+         * Последний символ — гарантированный результат.
+         */
+
+        const sequence = Array.from(
+            { length: ANIMATION_SYMBOLS },
+            pickSymbol
+        );
+
+        sequence.push(
+            pickSymbol(),
+            pickSymbol(),
+            finalSymbol
+        );
+
+        inner.innerHTML =
+            sequence.map(symbolMarkup).join("");
+
+        /*
+         * Начальная позиция.
+         */
+
+        const start =
+            -REEL_HEIGHT * 5;
+
+        /*
+         * Останавливаемся так,
+         * чтобы finalSymbol оказался
+         * примерно по центру окна.
+         */
+
+        const end =
+            -REEL_HEIGHT * (sequence.length - 3);
+
+        const startedAt =
+            performance.now();
+
+
+        function frame(now) {
+
+            const elapsed =
+                now - startedAt;
+
+            const progress =
+                Math.min(elapsed / duration, 1);
+
+            const eased =
+                easeOutQuart(progress);
+
+            const position =
+                start +
+                (end - start) * eased;
+
+            inner.style.transform =
+                `translateY(${position}px)`;
+
+
+            if (progress < 1) {
+
+                requestAnimationFrame(frame);
+
             } else {
-                const progress = Math.min(elapsed / baseDuration, 1);
-                easedProgress = easeOutQuart(progress);
-                
-                if (progress >= 1) {
-                    inner.style.transform = `translateY(${END_POSITION}px)`;
-                    resolve();
-                    return;
-                }
+
+                /*
+                 * Фиксируем точную конечную позицию.
+                 */
+
+                inner.style.transform =
+                    `translateY(${end}px)`;
+
+                setTimeout(
+                    resolve,
+                    extraDelay
+                );
             }
-            
-            const currentPosition = START_POSITION + (END_POSITION - START_POSITION) * easedProgress;
-            inner.style.transform = `translateY(${currentPosition}px)`;
-            
-            requestAnimationFrame(animate);
         }
-        requestAnimationFrame(animate);
+
+
+        requestAnimationFrame(frame);
     });
 }
 
-function createParticles(count = 20) {
-    const particles = ['💎', '⭐', '💰', '🎰', '✨', '💫', '🌟', '7️⃣'];
-    const machineRect = machine.getBoundingClientRect();
-    const centerX = machineRect.left + machineRect.width / 2;
-    const centerY = machineRect.top + machineRect.height * 0.3;
-    
-    for (let i = 0; i < count; i++) {
-        setTimeout(() => {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.textContent = particles[Math.floor(Math.random() * particles.length)];
-            particle.style.left = `${centerX + (Math.random() - 0.5) * 200}px`;
-            particle.style.top = `${centerY}px`;
-            particle.style.animationDelay = `${Math.random() * 0.3}s`;
-            document.body.appendChild(particle);
-            setTimeout(() => particle.remove(), 3000);
-        }, i * 25);
-    }
-}
 
-function shakeMachine() {
-    machine.classList.add('shaking');
-    setTimeout(() => machine.classList.remove('shaking'), 350);
-}
-
-function animatePointer() {
-    resultPointer.classList.add('hit');
-    setTimeout(() => resultPointer.classList.remove('hit'), 600);
-}
+/* =========================================
+   РЫЧАГ
+========================================= */
 
 function pullLever() {
-    leverShaft.classList.add('pulled');
-    setTimeout(() => leverShaft.classList.remove('pulled'), 300);
+
+    lever.classList.add("pulled");
+
+    setTimeout(() => {
+        lever.classList.remove("pulled");
+    }, 290);
 }
 
-async function spin() {
-    if (isSpinning) return;
-    
-    isSpinning = true;
-    stopRequested = [false, false, false];
-    
-    pullLever();
-    
-    const finalSymbols = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
-    
-    shakeMachine();
-    
-    // Base spin durations (ms)
-    const baseDurations = [1250, 1600, 2000];
-    const targetInterval = 2000; // 2 seconds between stops
-    let prevStop = 0;
-    const delays = baseDurations.map(dur => {
-        const extra = Math.max(0, (prevStop + targetInterval) - dur);
-        prevStop = dur + extra;
-        return extra; // additional ms to wait after spinReel resolves
-    });
-    
-    // Create promises that resolve after spinReel + extra delay
-    const spinPromises = reelElements.map((reel, idx) =>
-        spinReel(reel, baseDurations[idx], finalSymbols[idx], idx)
-            .then(() => new Promise(res => setTimeout(res, delays[idx])))
-    );
-    
-    await Promise.all(spinPromises);
-    
-    isSpinning = false;
-    
+
+/* =========================================
+   ЛЁГКАЯ ТРЯСКА АВТОМАТА
+========================================= */
+
+function shakeMachine() {
+
+    machine.classList.remove("shaking");
+
+    /*
+     * Перезапускаем CSS animation.
+     */
+
+    void machine.offsetWidth;
+
+    machine.classList.add("shaking");
+
     setTimeout(() => {
-        checkResult(finalSymbols);
-        animatePointer();
-    }, 150);
+        machine.classList.remove("shaking");
+    }, 380);
 }
+
+
+/* =========================================
+   АНИМАЦИЯ УКАЗАТЕЛЯ
+========================================= */
+
+function hitPointer() {
+
+    resultPointer.classList.remove("hit");
+
+    void resultPointer.offsetWidth;
+
+    resultPointer.classList.add("hit");
+
+    setTimeout(() => {
+        resultPointer.classList.remove("hit");
+    }, 500);
+}
+
+
+/* =========================================
+   ПАРТИКЛЫ ПРИ ВЫИГРЫШЕ
+========================================= */
+
+function createParticles(count = 24) {
+
+    const particles = [
+        "◆",
+        "★",
+        "✦",
+        "7",
+        "✧"
+    ];
+
+    const rect =
+        machine.getBoundingClientRect();
+
+    const originX =
+        rect.left + rect.width * 0.45;
+
+    const originY =
+        rect.top + rect.height * 0.28;
+
+
+    for (let i = 0; i < count; i++) {
+
+        setTimeout(() => {
+
+            const particle =
+                document.createElement("div");
+
+            particle.className =
+                "particle";
+
+            particle.textContent =
+                particles[
+                    Math.floor(
+                        Math.random() *
+                        particles.length
+                    )
+                ];
+
+
+            particle.style.left =
+                `${originX +
+                    (Math.random() - 0.5) * 220}px`;
+
+            particle.style.top =
+                `${originY}px`;
+
+
+            /*
+             * Золотой или красный цвет.
+             */
+
+            particle.style.color =
+                Math.random() > 0.5
+                    ? "#d1a63b"
+                    : "#c32822";
+
+
+            document.body.appendChild(
+                particle
+            );
+
+
+            setTimeout(() => {
+                particle.remove();
+            }, 1900);
+
+        }, i * 22);
+    }
+}
+
+
+/* =========================================
+   ПРОВЕРКА РЕЗУЛЬТАТА
+========================================= */
 
 function checkResult(symbols) {
-    const names = symbols.map(s => s.name);
-    const isJackpot = names[0] === names[1] && names[1] === names[2] && 
-                      (names[0] === 'diamond' || names[0] === 'star' || names[0] === 'seven');
-    const isWin = names[0] === names[1] && names[1] === names[2];
-    
-    if (isWin) {
-        if (isJackpot) {
-            createParticles(30);
+
+    const names =
+        symbols.map(
+            symbol => symbol.name
+        );
+
+    const win =
+        names[0] === names[1] &&
+        names[1] === names[2];
+
+
+    if (win) {
+
+        const bigWin =
+            names[0] === "seven" ||
+            names[0] === "diamond";
+
+        createParticles(
+            bigWin ? 34 : 18
+        );
+    }
+}
+
+
+/* =========================================
+   ОСНОВНОЙ SPIN
+========================================= */
+
+async function spin() {
+
+    /*
+     * Не разрешаем запустить второй spin,
+     * пока первый ещё идёт.
+     */
+
+    if (isSpinning) {
+        return;
+    }
+
+    isSpinning = true;
+
+
+    /*
+     * Движение рычага.
+     */
+
+    pullLever();
+
+
+    /*
+     * Лёгкая физическая тряска автомата.
+     */
+
+    shakeMachine();
+
+
+    /*
+     * Выбираем итоговые символы
+     * заранее.
+     */
+
+    const finalSymbols = [
+        pickSymbol(),
+        pickSymbol(),
+        pickSymbol()
+    ];
+
+
+    try {
+
+        /*
+         * Каждый барабан останавливается
+         * немного позже предыдущего.
+         */
+
+        await Promise.all([
+
+            spinSingleReel(
+                reelElements[0],
+                finalSymbols[0],
+                900
+            ),
+
+            spinSingleReel(
+                reelElements[1],
+                finalSymbols[1],
+                1250,
+                220
+            ),
+
+            spinSingleReel(
+                reelElements[2],
+                finalSymbols[2],
+                1600,
+                440
+            )
+
+        ]);
+
+
+        /*
+         * Проверяем выигрыш.
+         */
+
+        checkResult(finalSymbols);
+
+
+        /*
+         * Анимация красного указателя.
+         */
+
+        hitPointer();
+
+
+    } finally {
+
+        isSpinning = false;
+    }
+}
+
+
+/* =========================================
+   НАЖАТИЕ НА РЫЧАГ
+========================================= */
+
+if (lever) {
+
+    lever.addEventListener(
+        "click",
+        spin
+    );
+}
+
+
+/* =========================================
+   КНОПКА SPIN НА МОБИЛЬНОМ
+========================================= */
+
+if (spinButton) {
+
+    spinButton.addEventListener(
+        "click",
+        spin
+    );
+}
+
+
+/* =========================================
+   КЛИК ПО АВТОМАТУ
+========================================= */
+
+machine.addEventListener(
+    "click",
+    event => {
+
+        /*
+         * Не запускаем spin,
+         * если пользователь нажал
+         * непосредственно на барабан.
+         */
+
+        const clickedReel =
+            event.target.closest(".reel");
+
+        const clickedLever =
+            event.target.closest("#lever");
+
+        const clickedButton =
+            event.target.closest("#spinButton");
+
+
+        if (
+            !clickedReel &&
+            !clickedLever &&
+            !clickedButton
+        ) {
+            spin();
         }
     }
-}
+);
 
-// Запуск: рычаг, клик по корпусу, пробел, мобильная кнопка
-leverAssembly.addEventListener('click', spin);
-leverAssembly.addEventListener('touchstart', (e) => { e.preventDefault(); if (!isSpinning) spin(); }, { passive: false });
 
-machine.addEventListener('click', (e) => {
-    if (!isSpinning && !e.target.closest('.mobile-spin-btn') && !e.target.closest('.reel') && !e.target.closest('.lever-assembly')) {
-        spin();
+/* =========================================
+   КЛАВИАТУРА
+========================================= */
+
+window.addEventListener(
+    "keydown",
+    event => {
+
+        /*
+         * Пробел или Enter запускают автомат.
+         */
+
+        if (
+            event.code === "Space" ||
+            event.code === "Enter"
+        ) {
+
+            event.preventDefault();
+
+            spin();
+        }
     }
-});
+);
 
-if (mobileSpinBtn) {
-    mobileSpinBtn.addEventListener('click', spin);
-    mobileSpinBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if (!isSpinning) spin(); }, { passive: false });
-}
 
-window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' && !isSpinning) {
-        e.preventDefault();
-        spin();
-    }
-    if (isSpinning) {
-        if (e.code === 'Digit1' && !stopRequested[0]) requestStop(0);
-        if (e.code === 'Digit2' && !stopRequested[1]) requestStop(1);
-        if (e.code === 'Digit3' && !stopRequested[2]) requestStop(2);
-    }
-});
+/* =========================================
+   ЗАПУСК
+========================================= */
 
 initReels();
